@@ -4,11 +4,9 @@ A simple web application to analyze AI prompts for security risks and rewrite th
 
 ## Features
 
-- 🔍 Analyze prompts for injection risks
-- 📊 Risk scoring (0-100)
-- 🛡️ Automatic safe prompt generation
-- 🎯 Context-aware analysis
-- 📋 One-click copy of safe prompts
+- Analyze prompts for injection risks
+- Automatic safe prompt generation
+- Context-aware analysis
 
 ## Tech Stack
 
