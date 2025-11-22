@@ -110,7 +110,3 @@ Health check endpoint.
 - [ ] Batch analysis
 - [ ] Historical analysis tracking
 - [ ] Custom rule definitions
-
-## License
-
-MIT

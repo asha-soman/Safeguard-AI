@@ -4,15 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafePrompt - Prompt Injection Risk Analyzer</title>
+    <title>SafeGuard AI - Prompt Injection Risk Analyzer</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
     <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            background: linear-gradient(135deg, #8e9ee6 0%, #a16cd6 100%);
+            background: #7986cb;
             min-height: 100vh;
             padding: 20px;
         }
@@ -22,27 +31,67 @@
             margin: 0 auto;
         }
 
+        /* Logo styles */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+        }
+
+        /* White cards */
         .card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: #ffffff;
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-body {
+            color: #333;
+        }
+
+        .card-title {
+            color: #1a237e;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
         }
 
         .risk-badge {
             font-size: 1.2rem;
-            padding: 10px 20px;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .risk-low {
-            background-color: #28a745;
+            background: #4caf50;
+            color: white;
         }
 
         .risk-medium {
-            background-color: #ffc107;
-            color: #000;
+            background: #ff9800;
+            color: white;
         }
 
         .risk-high {
-            background-color: #dc3545;
+            background: #f44336;
+            color: white;
         }
 
         .comparison-section {
@@ -51,75 +100,356 @@
 
         .loading {
             display: none;
-        }
-
-        .code-block {
-            background-color: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            color: #5e35b1;
         }
 
         .hero-section {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .hero-section h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            margin-bottom: 12px;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+        }
+
+        .hero-section .lead {
+            font-size: 1.2rem;
+            color: #ffffff;
+            font-weight: 400;
+            opacity: 0.9;
         }
 
         .btn-analyze {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%);
             border: none;
-            padding: 12px 40px;
+            padding: 14px 40px;
             font-size: 1.1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(94, 53, 177, 0.3);
+            color: white;
         }
 
         .btn-analyze:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 20px rgba(94, 53, 177, 0.4);
+            background: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
         }
 
         .suspicious-highlight {
-            background-color: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 4px 10px;
+            border-radius: 6px;
             font-weight: 600;
             margin: 2px;
             display: inline-block;
+            color: #e65100;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-label {
+            display: inline-block;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #5e35b1 0%, #7e57c2 100%);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 12px rgba(94, 53, 177, 0.3);
+        }
+
+        .file-upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(94, 53, 177, 0.4);
+            background: linear-gradient(135deg, #7e57c2 0%, #5e35b1 100%);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-name-display {
+            display: inline-block;
+            margin-left: 15px;
+            padding: 10px 18px;
+            background: #f5f5f5;
+            border-radius: 50px;
+            border: 1px solid #e0e0e0;
+            color: #424242;
+            font-weight: 500;
+        }
+
+        .clear-file-btn {
+            margin-left: 10px;
+            cursor: pointer;
+            color: #f44336;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .clear-file-btn:hover {
+            color: #c62828;
+            transform: scale(1.1);
+        }
+
+        .input-option-divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .input-option-divider::before,
+        .input-option-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .input-option-divider::before {
+            left: 0;
+        }
+
+        .input-option-divider::after {
+            right: 0;
+        }
+
+        .input-option-divider span {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: #9e9e9e;
+            font-weight: 600;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-control {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control::placeholder {
+            color: #9e9e9e;
+        }
+
+        .form-control:focus {
+            background: #ffffff;
+            border-color: #5e35b1;
+            color: #333;
+            box-shadow: 0 0 0 3px rgba(94, 53, 177, 0.1);
+        }
+
+        .form-label {
+            color: #424242;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .text-muted {
+            color: #757575 !important;
+        }
+
+        .list-group-item {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            color: #424242;
+            margin-bottom: 8px;
+            border-radius: 10px !important;
+            padding: 12px 16px;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: 1px solid;
+            padding: 16px;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border-color: #a5d6a7;
+            color: #2e7d32;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-color: #ffcc80;
+            color: #e65100;
+        }
+
+        .badge {
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .bg-success {
+            background: #4caf50 !important;
+        }
+
+        .bg-danger {
+            background: #f44336 !important;
+        }
+
+        .bg-warning {
+            background: #ff9800 !important;
+        }
+
+        .safety-score-meter {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .score-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-high {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+        }
+
+        .score-medium {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+        }
+
+        .score-low {
+            background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+        }
+
+        h6 {
+            color: #424242;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .spinner-border {
+            border-color: rgba(94, 53, 177, 0.3);
+            border-right-color: #5e35b1;
+        }
+
+        #categoryBadge {
+            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 50px;
         }
     </style>
 </head>
 
 <body>
     <div class="main-container">
-        <!-- Hero Section -->
+        <!-- Hero Section with Logo -->
         <div class="hero-section">
-            <h1 class="display-4 mb-3"> SafeGuard AI</h1>
-            <p class="lead">Analyze and secure your AI prompts against injection attacks</p>
+            <div class="logo-container">
+                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Shield background -->
+                    <defs>
+                        <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#5e35b1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1e88e5;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Shield shape -->
+                    <path d="M50 10 L85 25 L85 50 Q85 75 50 90 Q15 75 15 50 L15 25 Z" 
+                          fill="url(#shieldGradient)" 
+                          stroke="#1a237e" 
+                          stroke-width="2"/>
+                    
+                    <!-- Checkmark -->
+                    <path d="M35 50 L45 60 L65 35" 
+                          fill="none" 
+                          stroke="white" 
+                          stroke-width="6" 
+                          stroke-linecap="round" 
+                          stroke-linejoin="round"/>
+                    
+                    <!-- Lock icon in center -->
+                    <rect x="42" y="45" width="16" height="12" rx="2" fill="white" opacity="0.3"/>
+                    <path d="M46 45 V40 Q46 36 50 36 Q54 36 54 40 V45" 
+                          fill="none" 
+                          stroke="white" 
+                          stroke-width="2.5" 
+                          opacity="0.3"/>
+                </svg>
+            </div>
+            <h1>SafeGuard AI</h1>
+            <p class="lead">Advanced prompt security analysis powered by AI</p>
         </div>
 
         <!-- Input Section -->
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title mb-3">Enter Your Prompt</h5>
+                <h5 class="card-title mb-3">Analyze Your Content</h5>
 
+                <!-- File Upload Section -->
+                <div class="file-upload-wrapper">
+                    <label for="fileInput" class="file-upload-label">
+                        Upload File
+                    </label>
+                    <input type="file" id="fileInput" class="file-input" 
+                           accept=".txt,.pdf,.py,.js,.java,.cpp,.c,.html,.css,.json,.xml,.md">
+                    <span id="fileNameDisplay" class="file-name-display" style="display: none;">
+                        <span id="fileName"></span>
+                        <span class="clear-file-btn" onclick="clearFile()">✕</span>
+                    </span>
+                    <div class="text-muted mt-2" style="font-size: 0.9rem;">
+                        Supported: PDF, TXT, Code files (.py, .js, .java, etc.)
+                    </div>
+                </div>
+
+                <div class="input-option-divider">
+                    <span>OR</span>
+                </div>
+
+                <!-- Text Input Section -->
                 <div class="mb-3">
+                    <label for="promptInput" class="form-label">Prompt Text</label>
                     <textarea class="form-control" id="promptInput" rows="6"
                         placeholder="Paste your prompt here to analyze for security risks..."></textarea>
                 </div>
 
-                <button class="btn btn-primary btn-analyze" onclick="analyzePrompt()">
-                    Analyze Prompt
+                <button class="btn btn-primary btn-analyze" onclick="analyzeContent()">
+                    Analyze
                 </button>
 
                 <!-- Loading Spinner -->
                 <div class="loading mt-3">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <span class="ms-2">Analyzing your prompt...</span>
+                    <span class="ms-2">Analyzing your content...</span>
                 </div>
             </div>
         </div>
@@ -138,6 +468,20 @@
                     <div class="mb-4">
                         <h6>Category:</h6>
                         <span class="badge bg-secondary fs-6 p-2" id="categoryBadge">Benign</span>
+                    </div>
+
+                    <!-- Safety Score (only shown for file uploads) -->
+                    <div id="safetyScoreSection" style="display: none;">
+                        <h6>Safety Score:</h6>
+                        <div class="safety-score-meter">
+                            <div class="score-circle" id="scoreCircle">
+                                <span id="scoreValue">10</span>/10
+                            </div>
+                            <div>
+                                <div class="fw-bold" id="scoreLabel">Completely Safe</div>
+                                <div class="text-muted" id="scoreDescription">No security concerns detected</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -163,11 +507,28 @@
 
     <!-- Custom JS -->
     <script>
-        async function analyzePrompt() {
-            const prompt = document.getElementById('promptInput').value;
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('fileNameDisplay').style.display = 'inline-block';
+            }
+        });
 
-            if (!prompt.trim()) {
-                alert('Please enter a prompt to analyze');
+        function clearFile() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileNameDisplay').style.display = 'none';
+        }
+
+        async function analyzeContent() {
+            const prompt = document.getElementById('promptInput').value;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            // Check if at least one input is provided
+            if (!prompt.trim() && !file) {
+                alert('Please either enter a prompt or upload a file');
                 return;
             }
 
@@ -176,15 +537,32 @@
             document.getElementById('resultsSection').style.display = 'none';
 
             try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: prompt
-                    })
-                });
+                let response;
+                
+                if (file) {
+                    // Use file upload endpoint
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    if (prompt.trim()) {
+                        formData.append('prompt', prompt);
+                    }
+
+                    response = await fetch('/analyze-file', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    // Use regular text analysis endpoint
+                    response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt
+                        })
+                    });
+                }
 
                 if (!response.ok) {
                     let errMsg = 'Analysis failed';
@@ -200,17 +578,16 @@
                 }
 
                 const data = await response.json();
-                displayResults(data, prompt);
-
+                displayResults(data, file ? true : false);
 
             } catch (error) {
-                alert('Error analyzing prompt: ' + error.message);
+                alert('Error analyzing content: ' + error.message);
             } finally {
                 document.querySelector('.loading').style.display = 'none';
             }
         }
 
-        function displayResults(data, originalPrompt) {
+        function displayResults(data, hasFile) {
             // Update risk badge
             const riskBadge = document.getElementById('riskBadge');
             riskBadge.textContent = data.risk_level;
@@ -229,6 +606,42 @@
                 categoryBadge.className = 'badge bg-warning text-dark fs-6 p-2';
             }
 
+            // Show safety score if file was uploaded
+            if (hasFile && data.safety_score !== null) {
+                document.getElementById('safetyScoreSection').style.display = 'block';
+                
+                const scoreValue = data.safety_score;
+                const scoreCircle = document.getElementById('scoreCircle');
+                const scoreLabel = document.getElementById('scoreLabel');
+                const scoreDescription = document.getElementById('scoreDescription');
+                
+                document.getElementById('scoreValue').textContent = scoreValue;
+                
+                if (scoreValue >= 9) {
+                    scoreCircle.className = 'score-circle score-high';
+                    scoreLabel.textContent = 'Completely Safe';
+                    scoreDescription.textContent = 'No security concerns detected';
+                } else if (scoreValue >= 7) {
+                    scoreCircle.className = 'score-circle score-high';
+                    scoreLabel.textContent = 'Mostly Safe';
+                    scoreDescription.textContent = 'Minor concerns, low risk';
+                } else if (scoreValue >= 5) {
+                    scoreCircle.className = 'score-circle score-medium';
+                    scoreLabel.textContent = 'Moderate Risk';
+                    scoreDescription.textContent = 'Some suspicious patterns detected';
+                } else if (scoreValue >= 3) {
+                    scoreCircle.className = 'score-circle score-low';
+                    scoreLabel.textContent = 'High Risk';
+                    scoreDescription.textContent = 'Clear injection attempts detected';
+                } else {
+                    scoreCircle.className = 'score-circle score-low';
+                    scoreLabel.textContent = 'Critical Risk';
+                    scoreDescription.textContent = 'Dangerous content detected';
+                }
+            } else {
+                document.getElementById('safetyScoreSection').style.display = 'none';
+            }
+
             // Update reasons list
             const reasonsList = document.getElementById('reasonsList');
             reasonsList.innerHTML = '';
@@ -242,7 +655,7 @@
             // Update suspicious phrases with highlighting
             const suspiciousPhrasesDiv = document.getElementById('suspiciousPhrases');
             if (data.suspicious_phrases.length === 0) {
-                suspiciousPhrasesDiv.innerHTML = '<p class="mb-0 text-success"> No suspicious phrases detected</p>';
+                suspiciousPhrasesDiv.innerHTML = '<p class="mb-0 text-success">No suspicious phrases detected</p>';
                 suspiciousPhrasesDiv.className = 'alert alert-success';
             } else {
                 suspiciousPhrasesDiv.className = 'alert alert-warning';
@@ -266,7 +679,7 @@
         // Allow Enter key to submit (with Ctrl/Cmd)
         document.getElementById('promptInput').addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                analyzePrompt();
+                analyzeContent();
             }
         });
     </script>
