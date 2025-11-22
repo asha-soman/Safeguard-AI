@@ -114,6 +114,21 @@
                     Analyze Prompt
                 </button>
 
+                <!-- Clarification Section (hidden by default) -->
+                <div id="clarificationSection" class="mt-4" style="display: none;">
+                    <div class="alert alert-info">
+                        <strong>Claude needs more context:</strong>
+                        <p id="clarificationQuestion" class="mb-2"></p>
+                        <label for="clarificationInput" class="form-label">Your answer</label>
+                        <textarea class="form-control" id="clarificationInput" rows="3"
+                            placeholder="Provide more context so the model can judge your intent more accurately..."></textarea>
+                        <button class="btn btn-outline-primary mt-2" onclick="submitClarificationAndAnalyze()">
+                            Submit clarification & analyze
+                        </button>
+                    </div>
+                </div>
+
+
                 <!-- Loading Spinner -->
                 <div class="loading mt-3">
                     <div class="spinner-border text-primary" role="status">
@@ -164,51 +179,120 @@
     <!-- Custom JS -->
     <script>
         async function analyzePrompt() {
-            const prompt = document.getElementById('promptInput').value;
-
-            if (!prompt.trim()) {
-                alert('Please enter a prompt to analyze');
-                return;
-            }
-
-            // Show loading, hide results
-            document.querySelector('.loading').style.display = 'block';
-            document.getElementById('resultsSection').style.display = 'none';
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        prompt: prompt
-                    })
-                });
-
-                if (!response.ok) {
-                    let errMsg = 'Analysis failed';
-                    try {
-                        const errData = await response.json();
-                        if (errData && errData.detail) {
-                            errMsg = errData.detail;
-                        }
-                    } catch (e) {
-                        // ignore JSON parse error, keep default message
-                    }
-                    throw new Error(errMsg);
-                }
-
-                const data = await response.json();
-                displayResults(data, prompt);
-
-
-            } catch (error) {
-                alert('Error analyzing prompt: ' + error.message);
-            } finally {
-                document.querySelector('.loading').style.display = 'none';
-            }
+        const prompt = document.getElementById('promptInput').value.trim();
+        if (!prompt) {
+            alert('Please enter a prompt to analyze');
+            return;
         }
+
+        const clarificationSection = document.getElementById('clarificationSection');
+        const clarificationInput = document.getElementById('clarificationInput');
+        const clarification = clarificationInput ? clarificationInput.value.trim() : "";
+
+        // If clarification section is visible and user has entered clarification,
+        // go straight to /analyze with both prompt + clarification
+        if (clarificationSection.style.display !== 'none' && clarification) {
+            await callAnalyzeApi(prompt, clarification);
+            return;
+        }
+
+        // Otherwise, first ask Claude if it needs clarification
+        await callClarifyApi(prompt);
+    }
+
+    async function callClarifyApi(prompt) {
+        // Show loading, hide results & clarification section
+        document.querySelector('.loading').style.display = 'block';
+        document.getElementById('resultsSection').style.display = 'none';
+        const clarificationSection = document.getElementById('clarificationSection');
+        clarificationSection.style.display = 'none';
+
+        try {
+            const response = await fetch('/clarify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!response.ok) {
+                let errMsg = 'Clarification check failed';
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.detail) {
+                        errMsg = errData.detail;
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                throw new Error(errMsg);
+            }
+
+            const data = await response.json();
+
+            if (data.needs_clarification) {
+                // Show question to user
+                const questionEl = document.getElementById('clarificationQuestion');
+                const clarificationInput = document.getElementById('clarificationInput');
+                questionEl.textContent = data.question || "Please provide more context for your prompt.";
+                clarificationInput.value = "";
+                clarificationSection.style.display = 'block';
+                // Stop here; wait for user to click "Submit clarification & analyze"
+            } else {
+                // No clarification needed → go straight to analysis
+                await callAnalyzeApi(prompt, "");
+            }
+
+        } catch (error) {
+            alert('Error during clarification: ' + error.message);
+            console.error(error);
+        } finally {
+            document.querySelector('.loading').style.display = 'none';
+        }
+    }
+
+    async function callAnalyzeApi(prompt, clarification) {
+        // Show loading, hide clarification section while analyzing
+        document.querySelector('.loading').style.display = 'block';
+        document.getElementById('resultsSection').style.display = 'none';
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    clarification: clarification || null
+                })
+            });
+
+            if (!response.ok) {
+                let errMsg = 'Analysis failed';
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.detail) {
+                        errMsg = errData.detail;
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                throw new Error(errMsg);
+            }
+
+            const data = await response.json();
+            displayResults(data, prompt);
+
+        } catch (error) {
+            alert('Error analyzing prompt: ' + error.message);
+            console.error(error);
+        } finally {
+            document.querySelector('.loading').style.display = 'none';
+        }
+    }
+
+    function submitClarificationAndAnalyze() {
+        // Called when user clicks "Submit clarification & analyze" button
+        analyzePrompt();
+    }
 
         function displayResults(data, originalPrompt) {
             // Update risk badge
